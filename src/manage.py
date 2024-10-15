@@ -14,11 +14,11 @@ def connect_to_postgres():
     try:
         # Obtém as credenciais do banco de dados a partir do .env
         connection = psycopg2.connect(
-            dbname=os.getenv('DB_NAME'),
-            user=os.getenv('DB_USER'),
-            password=os.getenv('DB_PASSWORD'),
-            host=os.getenv('DB_HOST'),
-            port=os.getenv('DB_PORT')
+            dbname=os.getenv('brunajocafelipe'),
+            user=os.getenv('jocafelipe'),
+            password=os.getenv('felipejoca'),
+            host=os.getenv('localhost'),
+            port=os.getenv('4003)
         )
         logging.info("Conexão com PostgreSQL estabelecida com sucesso.")
         return connection
@@ -57,7 +57,9 @@ if __name__ == '__main__':
 
     # Garante que o script seja executado diretamente
     if os.path.basename(sys.argv[0]) == os.path.basename(__file__):
-        main()
+        main() 
     else:
         logging.error("O script não está sendo executado no contexto correto.")
+
+        
 
