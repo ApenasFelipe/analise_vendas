@@ -1,12 +1,12 @@
-import sqlite3
+import psycopg2
 import pandas as pd
 
-# Caminho para o arquivo SQLite
-file_path = 'E:/Projetos/analise_vendas/data/dataset.sqlite'  # Atualize conforme necessário
+# Caminho para o arquivo PG
+file_path = 'E:/Projetos/analise_vendas/data/dataset.cvs'  # Atualize conforme necessário
 
 try:
     # Conexão ao banco de dados
-    connectSQLite = sqlite3.connect(file_path)
+    connectPostGrees = psycopg2.connect(file_path)
     
     # 1. Consulta pra pegar o método de pagamento mais usado
     query_pagamento_mais_usado = ''' 
@@ -17,7 +17,7 @@ try:
         LIMIT 1;
     '''
     
-    df_pagamento_mais_usado = pd.read_sql_query(query_pagamento_mais_usado, connectSQLite)
+    df_pagamento_mais_usado = pd.read_sql_query(query_pagamento_mais_usado, connectPostGrees)
     
     if not df_pagamento_mais_usado.empty:
         pagamento_mais_usado = df_pagamento_mais_usado['payment_type'][0]
@@ -31,7 +31,7 @@ try:
         '''
         
         # 3. Passar os valores de forma segura
-        df_valor_medio = pd.read_sql_query(query_valor_medio, connectSQLite, params=(pagamento_mais_usado,))
+        df_valor_medio = pd.read_sql_query(query_valor_medio, connectPostGrees, params=(pagamento_mais_usado,))
         
         if not df_valor_medio.empty:
             valor_medio = df_valor_medio['valor_medio'][0]
@@ -41,11 +41,11 @@ try:
     else:
         print("Nenhum tipo de pagamento foi encontrado.")
     
-except sqlite3.Error as e:
+except psycopg2.Error as e:
     # Tratamento de erros de conexão ou execução de consultas de valores
     print(f"Erro ao acessar o banco de dados: {e}")
     
 finally:
     # 4. Garantir que a conexão seja fechada
-    if connectSQLite:
-        connectSQLite.close()
+    if connectPostGrees:
+        connectPostGrees.close()
