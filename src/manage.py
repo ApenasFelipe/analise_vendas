@@ -1,38 +1,63 @@
 #!/usr/bin/env python
-"""Django's command-line utility for administrative tasks."""
+"""Utilitário de linha de comando para tarefas administrativas no PostgreSQL."""
 import os
 import sys
 import logging
+import psycopg2
 from dotenv import load_dotenv  # carregar as variáveis de ambiente
 
-def main():
-    """Executa tarefas administrativas de forma segura."""
-    
-    # Carrega as variáveis de ambiente do .env
+def connect_to_postgres():
+    """Conecta ao banco de dados PostgreSQL usando as variáveis de ambiente."""
+    # Carrega as variáveis de ambiente do arquivo .env
     load_dotenv()
 
-    # Pega DJANGO_SETTINGS_MODULE da variável de ambiente (seguro)
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', os.getenv('DJANGO_SETTINGS_MODULE', 'vendas_proj.settings'))
-
     try:
-        from django.core.management import execute_from_command_line
-    except ImportError as exc:
-        logging.error("Falha ao importar o Django. Verifique se o Django está instalado e o ambiente virtual está ativo.")
-        raise ImportError(
-            "Não foi possível importar o Django. Você tem certeza de que ele está instalado e disponível no seu "
-            "PYTHONPATH? Você esqueceu de ativar um ambiente virtual?"
-        ) from exc
+        # Obtém as credenciais do banco de dados a partir do .env
+        connection = psycopg2.connect(
+            dbname=os.getenv('DB_NAME'),
+            user=os.getenv('DB_USER'),
+            password=os.getenv('DB_PASSWORD'),
+            host=os.getenv('DB_HOST'),
+            port=os.getenv('DB_PORT')
+        )
+        logging.info("Conexão com PostgreSQL estabelecida com sucesso.")
+        return connection
 
+    except psycopg2.DatabaseError as error:
+        logging.error(f"Erro ao conectar ao PostgreSQL: {error}")
+        sys.exit(1)
+
+def execute_query(connection, query):
+    """Executa uma consulta SQL no banco de dados PostgreSQL."""
     try:
-        execute_from_command_line(sys.argv)
-    except Exception as exc:
-        logging.error(f"Ocorreu um erro ao executar o comando: {exc}")
-        raise
+        cursor = connection.cursor()
+        cursor.execute(query)
+        connection.commit()
+        logging.info("Consulta executada com sucesso.")
+        cursor.close()
+    except psycopg2.Error as error:
+        logging.error(f"Erro ao executar a consulta: {error}")
+        connection.rollback()
+
+def main():
+    """Executa tarefas administrativas no PostgreSQL de forma segura."""
+    connection = connect_to_postgres()
+
+    # Exemplo: Consulta que deseja executar (substitua pelo que precisar)
+    query = "SELECT NOW();"  # Exemplo de consulta para pegar a data e hora atual do servidor
+    execute_query(connection, query)
+
+    # Fechar a conexão após as operações
+    connection.close()
+    logging.info("Conexão com PostgreSQL fechada.")
 
 if __name__ == '__main__':
+    # Configura o logging para exibir mensagens de erro e info no console
+    logging.basicConfig(level=logging.INFO)
+
     # Garante que o script seja executado diretamente
     if os.path.basename(sys.argv[0]) == os.path.basename(__file__):
         main()
     else:
         logging.error("O script não está sendo executado no contexto correto.")
-        
+
